@@ -1,0 +1,36 @@
+version: '2.20.2'
+
+services:
+  ci-app:
+    container_name: ci-app
+    image: ci-app:latest
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+    ports:
+      - "8080:8080"
+    networks:
+      vpcbr:
+        ipv4_address: 10.5.0.6
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://10.5.0.6:8080/api/"]
+
+
+  ci-app-tests:
+    container_name: ci-app-tests
+    image: ci-app-tests:latest
+    networks:
+      vpcbr:
+        ipv4_address: 10.5.0.5
+    depends_on:
+      ci-app:
+        condition: service_healthy
+
+
+networks:
+  vpcbr:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.5.0.0/16
+          gateway: 10.5.0.1
